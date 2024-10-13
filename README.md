@@ -80,6 +80,12 @@ Everytime we want to create a new set of cards, we create the collection with a 
 2. The Main contract will have an owner (i.e. a super-admin), which will be able to mint and assign cards to a selected user in a selected collection.
 3. The owner will be able to mint and assign an arbitrary amount of cards to a user from a specified collection.
 
+--- TODO : 
+Collection.sol : name, card count, a set of NFT ( DONE )
+Card.sol : metadata (card number, img) + ERC721 implementation + from a specific collection ( id of the collection)  ( DONE )
+Main.sol : owner, mint and assign cards to a user in a collection , create a collection with a name and a card count , retrieve all informations from the different sets , mint and assign an arbitrary amount of cards to a user from a specified collection ( DONE )
+
+
 ## First offchain part
 
 > Create the frontend to interact with the contract.

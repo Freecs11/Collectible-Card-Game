@@ -1,12 +1,26 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8;
+pragma solidity ^0.8.0;
 
 contract Collection {
-  string public name;
-  int public cardCount;
+    string public name;
+    uint256 public cardCount;
+    uint256[] public cardIds; // Array to store card IDs 
 
-  constructor(string memory _name, int _cardCount) {
-    name = _name;
-    cardCount = _cardCount;
-  }
+    event CardAdded(uint256 cardId);
+
+    constructor(string memory _name, uint256 _cardCount) {
+        name = _name;
+        cardCount = _cardCount;
+    }
+
+    // Function to add a card to the collection
+    function addCard(uint256 cardId) public {
+        cardIds.push(cardId);
+        emit CardAdded(cardId);
+    }
+
+    // Function to retrieve all card IDs in the collection
+    function getCardIds() public view returns (uint256[] memory) {
+        return cardIds;
+    }
 }
