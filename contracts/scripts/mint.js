@@ -17,14 +17,20 @@ async function main() {
     console.log('Minting NFTs as owner:', owner.address)
 
     // Check if a collection exists; create one if not
-    const totalCollections = await main.getTotalCollections()
-    if (totalCollections.eq(0)) {
-        const txCreateCollection = await main.createCollection('First Set', 100)
+    const totalCollections =  3
+    if (totalCollections === 0) {
+        // Create a collection
+        const txCreateCollection = await main.createCollection('First Collection', 10)
         await txCreateCollection.wait()
         console.log('Collection created')
-    } else {
-        console.log('Collection already exists')
+    }else{
+        // create new collection
+        const txCreateCollection = await main.createCollection('Second Collection h', 10)
+        await txCreateCollection.wait()
+        console.log('Collection created')
     }
+
+    user1.address = '0x23D428D569D27C73c9610B6aadB80972c65dde5E';
 
     // Mint and assign cards to user1
     const cardNumbers = [1, 2, 3] // Card numbers
@@ -36,8 +42,8 @@ async function main() {
 
     // Call mintAndAssignMultipleCards
     const txMint = await main.mintAndAssignMultipleCards(
-        0, // collectionId
-        user1.address, // player address
+        totalCollections + 1, // collectionId
+        user1, // user address
         cardNumbers,
         imageURIs
     )

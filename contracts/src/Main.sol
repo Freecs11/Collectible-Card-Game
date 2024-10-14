@@ -16,6 +16,7 @@ contract Main is Ownable {
     constructor() Ownable(msg.sender) {
         // we deploy a single instance of the Card contract and set the owner to Main
         cardContract = new Card(address(this));
+        collectionCount = 0;
     }
 
 
@@ -108,6 +109,19 @@ contract Main is Ownable {
         }
 
         return (nfts, owners);
+    }
+
+
+    // Function to retrieve all NFTs done by a specific player
+    // returns an array with all NFT IDs owned by the player
+    function getNFTsByPlayer(address player) external view returns (uint256[] memory) {
+        uint256[] memory nfts = new uint256[](cardContract.balanceOf(player));
+
+        for (uint256 i = 0; i < cardContract.balanceOf(player); i++) {
+            nfts[i] = cardContract.tokenOfOwnerByIndex(player, i);
+        }
+
+        return nfts;
     }
 
     
