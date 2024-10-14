@@ -44,15 +44,26 @@ const useWallet = () => {
 export const App = () => {
   const wallet = useWallet();
 
-  const [nft, setNFT] = useState<main.Main | undefined>();
+
+  const [nft, setNFT] = useState<number | null>(null);
   const [owner, setOwner] = useState<string | undefined>();
 
   useEffect(() => {
     if (!wallet) return;
-    setOwner(wallet.details.account);
-    setNFT(wallet.contract.getTotalCollections()  );
-  }
-  , [wallet]);
+
+    const fetchTotalCollections = async () => {
+      try {
+        setOwner(wallet.details.account);
+        const totalCollections = await wallet.contract.getTotalCollections();
+        setNFT(totalCollections.toNumber()); // Convert BigNumber to number
+      } catch (error) {
+        console.error('Error fetching total collections:', error);
+      }
+    };
+
+    fetchTotalCollections();
+  }, [wallet]);
+
 
 
 
