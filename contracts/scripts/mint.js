@@ -5,7 +5,7 @@ async function main() {
     // Get the accounts
     const [owner] = await hre.ethers.getSigners();
 
-    const mainContractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Update this if needed
+    const mainContractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; 
 
     // Get the contract factory and attach to the deployed contract
     const Main = await hre.ethers.getContractFactory('Main');
@@ -31,8 +31,8 @@ async function main() {
         console.log('Using existing collection with ID:', collectionId.toString());
     }
 
-    // The address you want to mint to
-    const playerAddress = '0x0cdb365aa09537ebd0ee98037753ac0114177490'; // Your frontend address
+    // The address to assign the cards to
+    const playerAddress = '0x0cdb365aa09537ebd0ee98037753ac0114177490'; 
 
     // Card numbers and image URIs
     const cardNumbers = [6, 7, 8]; // Card numbers
