@@ -8,4 +8,11 @@ export default defineConfig({
   resolve: {
     alias: [{ find: '@', replacement: '/src' }],
   },
+  css: {
+    preprocessorOptions: {
+      css: {
+        additionalData: `@import 'index.css';`,
+      },
+    }
+  },
 })

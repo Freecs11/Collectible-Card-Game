@@ -3,6 +3,7 @@ import * as ethereum from './ethereum'
 import { contracts } from '@/contracts.json'
 import type { Main } from '$/Main'
 export type { Main } from '$/Main'
+import type { AbiItem } from 'web3-utils'
 
 export const correctChain = () => {
   return 31337
@@ -24,3 +25,5 @@ export const init = async (details: ethereum.Details) => {
 }
 
 export const myShip = () => contracts.Main.address
+
+export const myAbi = () => contracts.Main.abi as AbiItem[]
