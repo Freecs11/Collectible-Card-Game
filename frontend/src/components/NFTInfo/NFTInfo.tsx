@@ -4,6 +4,7 @@ import * as ethereum from '@/lib/ethereum'
 import * as main from '@/lib/main'
 import axios from 'axios'
 import { ethers } from 'ethers'
+import Web3 from 'web3'
 
 interface NFTInfoProps {
   wallet:
@@ -29,7 +30,11 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
   const [nftsByAddress, setNftsByAddress] = useState<CardDetails[]>([])
   const [boosters, setBoosters] = useState<string[]>([]) // Store booster IDs
   const [selectedBooster, setSelectedBooster] = useState<string | null>(null)
+  const [selectedBoosterName, setSelectedBoosterName] = useState<string>('')
   const [boosterCards, setBoosterCards] = useState<CardDetails[]>([])
+  const [boosterCollectionNames, setBoosterCollectionNames] = useState<
+    string[]
+  >([])
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
 
@@ -41,10 +46,6 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
       // Fetch NFTs owned by the user
       const nfts = await wallet.contract.getNFTsByPlayer(ownerAddress)
       const nftIds = nfts.map((nft: { toString: () => any }) => nft.toString())
-
-      // Fetch boosters owned by the user
-      const boosterId = await wallet.contract.getBoosterByUser(ownerAddress)
-      setBoosters([boosterId.toString()])
 
       // Fetch detailed card information for each NFT
       const detailedCards = await Promise.all(
@@ -82,6 +83,7 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
   useEffect(() => {
     if (!wallet) return
     fetchNFTs()
+    refreshBoosters()
   }, [wallet])
 
   const redeemBooster = async (boosterId: string) => {
@@ -89,10 +91,16 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
       setStatusMessage(`Redeeming Booster ID: ${boosterId}...`)
       if (!wallet) return
 
+      // contract address
+      const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+      const owner_address = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'
+      const web3 = new Web3('http://localhost:8545')
+
+      let contractAbi = main.myAbi()
+      let contract = new web3.eth.Contract(contractAbi, contractAddress)
+
       // Get booster details
-      const boosterResponse = await wallet.contract.getBoosterCards(
-        ethers.BigNumber.from(boosterId)
-      )
+      const boosterResponse = await wallet.contract.getBoosterCards(boosterId)
       const cardIds = boosterResponse[0]
       const boosterCollectionName = boosterResponse[1]
 
@@ -107,33 +115,38 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
             tokenId: cardId,
             cardNumber: parseInt(pokemonData?.number) || 0,
             cardImageUrl:
-              pokemonData?.images?.large || 'https://via.placeholder.com/150',
+              pokemonData?.images?.large || pokemonData?.images?.small,
           }
         })
       )
 
       const finalCardIds = detailedCards.map(card => card.tokenId)
-      const finalCardNumbers = detailedCards.map(card => card.cardNumber)
+      const finalCardNumbers = detailedCards.map(card =>
+        ethers.BigNumber.from(card.cardNumber)
+      )
+
       const finalImageURIs = detailedCards.map(card => card.cardImageUrl)
 
-      // Call the redeem function
-      await wallet.contract.redeemBoosterAndCreateCollection(
-        ethers.BigNumber.from(boosterId),
-        wallet.details.account,
-        boosterCollectionName,
-        finalCardIds,
-        finalCardNumbers,
-        finalImageURIs,
-        {
-          // no fee or gas
-          gasLimit: 0,
-          gasPrice: 0,
-        }
-      )
+      const tx = await contract.methods
+        .redeemBoosterAndCreateCollection(
+          boosterId,
+          wallet.details.account,
+          boosterCollectionName,
+          finalCardIds,
+          finalCardNumbers,
+          finalImageURIs
+        )
+        .send({
+          from: owner_address,
+          value: ethers.utils.parseEther('0.01'),
+          gasLimit: 3000000,
+        })
+
       setStatusMessage(`Booster ID: ${boosterId} redeemed successfully!`)
 
       fetchNFTs()
       setSelectedBooster(null)
+      refreshBoosters()
     } catch (error) {
       console.error('Error redeeming booster:', error)
       setStatusMessage('Failed to redeem booster.')
@@ -144,6 +157,7 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
     try {
       if (!wallet) return
       setLoading(true)
+      if (!boosterId || boosterId.trim() === '') return
 
       const boosterResponse = await wallet.contract.getBoosterCards(boosterId)
       const cardIds = boosterResponse[0]
@@ -183,6 +197,7 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
 
       setBoosterCards(detailedCards)
       setSelectedBooster(boosterId)
+      setSelectedBoosterName(boosterCollectionName)
       setLoading(false)
     } catch (error) {
       console.error('Error fetching booster cards:', error)
@@ -194,11 +209,26 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
   const refreshBoosters = async () => {
     try {
       if (!wallet) return
-      const ownerAddress = wallet.details.account
 
-      // Fetch boosters owned by the user
-      const boosterId = await wallet.contract.getBoosterByUser(ownerAddress)
-      setBoosters([boosterId.toString()])
+      // function getAllBoosters()
+      //   external
+      //   view
+      //   returns (
+      //     uint256[] memory boosterIdResult,
+      //     string[] memory boosterNameResult,
+      //     uint256[] memory boosterPriceResult
+      //   )
+      // {
+
+      const boostersResponse = await wallet.contract.getAllBoosters()
+      const boosters = boostersResponse[0].map((booster: any) =>
+        booster.toString()
+      )
+      setBoosters(boosters)
+
+      const boosterCollectionNames = boostersResponse[1]
+      setBoosterCollectionNames(boosterCollectionNames)
+
       console.log('Boosters:', boosters)
     } catch (error) {
       console.error('Error fetching boosters:', error)
@@ -259,6 +289,12 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
             {boosters.map((boosterId, index) => (
               <li key={index} className="bg-white p-4 rounded-lg shadow-md">
                 <p className="text-sm font-medium">Booster ID: {boosterId}</p>
+                <p className="text-sm text-gray-500">
+                  Collection: {boosterCollectionNames[index]}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Price: {0.01} ETH (0.01 ETH = 1 card)
+                </p>
                 <div className="flex space-x-4 mt-2">
                   <button
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
@@ -295,9 +331,12 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h3 className="text-lg font-bold mb-4">Booster Pack Contents</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Booster collection: {selectedBoosterName}
+            </p>
             <ul className="space-y-2">
               {boosterCards.map(card => (
-                <li key={card.tokenId} className="flex items-center space-x-4">
+                <li className="flex items-center space-x-4">
                   <img
                     src={card.cardImageUrl}
                     alt={card.cardName}

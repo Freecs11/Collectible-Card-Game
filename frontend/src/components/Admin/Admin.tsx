@@ -41,6 +41,7 @@ const Admin = () => {
   const [collectionCardCount, setCollectionCardCount] = useState<number>(0)
   const [boosterNumber, setBoosterNumber] = useState<number>(0)
   const [boosterName, setBoosterName] = useState<string>('')
+
   const adminPassword = localStorage.getItem('adminPassword')
 
   // contract address
@@ -161,9 +162,11 @@ const Admin = () => {
       setLoading(true)
       console.log('Creating collection:', collectionName, collectionCardCount)
       setStatusMessage(`Creating collection: ${collectionName}...`)
+      // use very small gas limit to avoid out of gas error
       await contract.methods
         .createCollection(collectionName, collectionCardCount)
         .send({ from: owner_address })
+
       setStatusMessage('Collection created successfully!')
       fetchCollections() // Refresh the collection list after creation
     } catch (error) {
@@ -199,6 +202,7 @@ const Admin = () => {
         )
         .send({
           from: owner_address,
+          gas: 1000,
         })
 
       setStatusMessage(`${card.name} minted successfully!`)
@@ -235,7 +239,10 @@ const Admin = () => {
           cardNumbers,
           imageURIs
         )
-        .send({ from: owner_address })
+        .send({
+          from: owner_address,
+          gas: 1000,
+        })
 
       setStatusMessage(`Minted ${selectedCards.length} cards to ${userAddress}`)
     } catch (error) {
@@ -247,7 +254,7 @@ const Admin = () => {
   }
 
   const createBooster = async () => {
-    if (!userAddress || boosterNumber === 0 || !boosterName) {
+    if (boosterNumber === 0 || !boosterName) {
       alert('Please select a user, provide a booster name, and select cards.')
       return
     }
@@ -276,7 +283,11 @@ const Admin = () => {
       // Call the contract to create the booster
       await contract.methods
         .createBoosterForPlayer(userAddress, cardIds, boosterName)
-        .send({ from: owner_address })
+        .send({
+          from: owner_address,
+          // cost 0.01 wei , don't take boosterPrice as input
+          value: web3.utils.toWei('0.01', 'ether'),
+        })
 
       setStatusMessage('Booster created successfully!')
     } catch (error) {
@@ -404,6 +415,7 @@ const Admin = () => {
               onChange={e => setBoosterNumber(Number(e.target.value))}
               className="px-4 py-2 border rounded-md w-full mb-2"
             />
+
             <button
               className="bg-pokemonBlue text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
               onClick={createBooster}

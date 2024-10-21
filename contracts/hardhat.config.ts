@@ -17,6 +17,12 @@ const config: HardhatUserConfig = {
     deploy: './deploy',
     sources: './src',
   },
+  networks: {
+    hardhat: {
+        loggingEnabled: true,
+    },
+  },
+
   namedAccounts: {
     deployer: { default: 0 },
     admin: { default: 0 },

@@ -81,7 +81,7 @@ contract Main is Ownable {
     string memory cardIds,
     uint256 cardNumber,
     string memory imageURI
-  ) external onlyOwner {
+  ) public onlyOwner returns (uint256) {
     require(collectionId < collectionCount, "Invalid collection ID");
     Collection collection = collections[collectionId];
 
@@ -95,6 +95,8 @@ contract Main is Ownable {
     collection.addCard(cardId);
 
     emit CardMinted(collectionId, cardId, player);
+
+    return cardId;
   }
 
   // Function to mint and assign multiple cards to a user from a specified collection
@@ -237,7 +239,9 @@ contract Main is Ownable {
     address player,
     string[] calldata cardIds,
     string memory boosterName
-  ) external {
+  ) external payable {
+    // check that it's 0.01wei per booster
+    require(msg.value == 0.01 ether, "Invalid value");
     boosterContract.createBooster(player, cardIds, boosterName);
   }
 
@@ -248,7 +252,6 @@ contract Main is Ownable {
     return boosterContract.getBoosterCards(boosterId);
   }
 
-  // Function to redeem a booster and create a new collection
   function redeemBoosterAndCreateCollection(
     uint256 boosterId,
     address player,
@@ -256,17 +259,14 @@ contract Main is Ownable {
     string[] memory cardIds,
     uint256[] memory cardNumbers,
     string[] memory imageURIs
-  ) external {
-    // Ensure the caller is authorized (e.g., Booster contract)
-    require(player == msg.sender, "Not authorized");
+  ) external payable {
+    require(msg.value == 0.01 ether, "Invalid value");
 
     // Create a new collection
     Collection newCollection = new Collection(collectionName, cardIds.length);
     collections[collectionCount] = newCollection;
-    uint256 collectionId = collectionCount;
-    collectionCount++;
 
-    // Mint cards and add them to the collection
+    // Mint and assign multiple cards to the player
     for (uint256 i = 0; i < cardIds.length; i++) {
       uint256 cardId = cardContract.mintCard(
         player,
@@ -274,19 +274,25 @@ contract Main is Ownable {
         cardNumbers[i],
         imageURIs[i]
       );
-      cardContract.setCardCollection(cardId, collectionId);
+      cardContract.setCardCollection(cardId, collectionCount);
       newCollection.addCard(cardId);
     }
 
-    boosterContract.redeemBooster(boosterId, player);
+    collectionCount++;
 
-    emit CollectionCreated(collectionId, collectionName, cardIds.length);
+    // Redeem the booster
+    boosterContract.redeemBooster(boosterId);
   }
 
-  // get boosters by user
-  function getBoosterByUser(
-    address player
-  ) external view returns (uint256[] memory result) {
-    return boosterContract.getBoostersByUser(player);
+  // Function to get all boosters with their prices and names
+  function getAllBoosters()
+    external
+    view
+    returns (
+      uint256[] memory boosterIdResult,
+      string[] memory boosterNameResult
+    )
+  {
+    return boosterContract.getAllBoosters();
   }
 }

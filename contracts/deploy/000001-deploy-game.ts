@@ -58,8 +58,6 @@ const deployer: DeployFunction = async hre => {
   const mainContract = await ethers.getContractAt('Main', mainAddress);
   await mainContract.setCardContract(cardAddress);
   await mainContract.setBoosterContract(boosterAddress);
-  const boosterContract = await ethers.getContractAt('Booster', boosterAddress);
-  await boosterContract.setCardContract(cardAddress);
   console.log('Booster contract address set in Main contract');
 };
 
