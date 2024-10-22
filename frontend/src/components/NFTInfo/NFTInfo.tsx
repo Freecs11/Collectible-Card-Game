@@ -138,15 +138,14 @@ const NFTInfo: FC<NFTInfoProps> = ({ wallet }) => {
         )
         .send({
           from: owner_address,
-          value: ethers.utils.parseEther('0.01'),
-          gasLimit: 3000000,
+          value: web3.utils.toWei('0.01', 'ether'),
+          gas: 3000000, // Adjusted to 'gas' instead of 'gasLimit'
         })
 
       setStatusMessage(`Booster ID: ${boosterId} redeemed successfully!`)
-
+      refreshBoosters()
       fetchNFTs()
       setSelectedBooster(null)
-      refreshBoosters()
     } catch (error) {
       console.error('Error redeeming booster:', error)
       setStatusMessage('Failed to redeem booster.')

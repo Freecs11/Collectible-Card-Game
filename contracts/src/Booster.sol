@@ -37,6 +37,10 @@ contract Booster is ERC721Enumerable {
     // check that the booster exists
 
     _burn(boosterId);
+    // remove the booster from the mappings
+    delete boosterCards[boosterId];
+    delete boosterNames[boosterId];
+
     emit BoosterRedeemed(boosterId);
   }
 

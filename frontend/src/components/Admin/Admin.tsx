@@ -202,7 +202,7 @@ const Admin = () => {
         )
         .send({
           from: owner_address,
-          gas: 1000,
+          // gas: 1000,
         })
 
       setStatusMessage(`${card.name} minted successfully!`)
@@ -241,7 +241,7 @@ const Admin = () => {
         )
         .send({
           from: owner_address,
-          gas: 1000,
+          // gas: 1000,
         })
 
       setStatusMessage(`Minted ${selectedCards.length} cards to ${userAddress}`)
