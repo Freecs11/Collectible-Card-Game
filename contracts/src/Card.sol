@@ -14,7 +14,18 @@ contract Card is ERC721Enumerable, Ownable {
 
   constructor(
     address initialOwner
-  ) ERC721("Card", "CARD") Ownable(initialOwner) {}
+  ) ERC721("Card", "CARD") Ownable(initialOwner) {
+    _tokenIds = 0;
+  }
+
+  // erreur rencontré de 'Contract'#<unrecognized-selector> ...
+  // see https://github.com/MetaMask/metamask-extension/issues/14963
+  // & https://github.com/smartcontractkit/full-blockchain-solidity-course-js/discussions/315 for more details
+  // // * receive function
+  // receive() external payable {}
+
+  // // * fallback function
+  // fallback() external payable {}
 
   function mintCard(
     address player,

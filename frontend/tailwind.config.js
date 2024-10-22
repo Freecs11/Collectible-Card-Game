@@ -21,6 +21,15 @@ export default {
         sans: ['Poppins', 'sans-serif'],
         pokemon: ['"Press Start 2P"', 'cursive'], // A retro game font
       },
+      animation: {
+        'move-pattern': 'movePattern 30s linear infinite',
+      },
+      keyframes: {
+        movePattern: {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '1000px 1000px' },
+        },
+      },
     },
   },
   plugins: [],

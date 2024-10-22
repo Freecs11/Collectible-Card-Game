@@ -13,6 +13,11 @@ contract Collection {
     cardCount = _cardCount;
   }
 
+  receive() external payable {}
+
+  // * fallback function
+  fallback() external payable {}
+
   // Function to add a card to the collection
   function addCard(uint256 cardId) public {
     cardIds.push(cardId);

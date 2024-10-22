@@ -2,11 +2,15 @@ import { getStoredOrFetchCards } from './pokemonService';
 import { PokemonCard } from '../types/pokemonCard';
 
 export const getRandomBoosterCards = async (
-    setId: string,
     numCards: number,
     boosterName: string
-): Promise<{ name: string; cardIds: string[]}> => {
-    const cards: PokemonCard[] = await getStoredOrFetchCards(setId);
+): Promise<{ setId: number; name: string; cardIds: string[]}> => {
+    // getSets() in pokemonService.ts and get a random set
+    const sets = require('../data/sets.json');
+    const randomSet = sets.data[Math.floor(Math.random() * sets.data.length)];
+    
+
+    const cards: PokemonCard[] = await getStoredOrFetchCards(randomSet.id);
 
     if (cards.length < numCards) {
         throw new Error('Not enough cards in the set to generate a booster');
@@ -32,5 +36,5 @@ export const getRandomBoosterCards = async (
     // });
 
     // return { name: boosterName, cardIds: selectedCardIds , cardNumbers: cardNumbers , cardNames: cardNames , cardImages: cardImages };
-    return { name: boosterName, cardIds: selectedCardIds };
+    return { setId: randomSet.id, name: boosterName, cardIds: selectedCardIds };
 };

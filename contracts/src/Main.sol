@@ -13,8 +13,8 @@ contract Main is Ownable {
   Booster public boosterContract;
 
   // Mapping to track registered users
-  mapping(address => bool) private registeredUsers;
-  address[] private userAddresses;
+  // mapping(address => bool) private registeredUsers;
+  // address[] private userAddresses;
 
   event UserRegistered(address user);
 
@@ -31,9 +31,17 @@ contract Main is Ownable {
 
   constructor(address _owner) Ownable(_owner) {
     // cardContract = Card(_cardContract);
-    collectionCount = 0;
     // boosterContract = new Booster(_owner, address(cardContract));
   }
+
+  // erreur rencontré de 'Contract'#<unrecognized-selector> ...
+  // see https://github.com/MetaMask/metamask-extension/issues/14963
+  // & https://github.com/smartcontractkit/full-blockchain-solidity-course-js/discussions/315 for more details
+  // * receive function
+  receive() external payable {}
+
+  // * fallback function
+  fallback() external payable {}
 
   // Function to set the Card contract address in the Main contract
   function setCardContract(address _cardAddress) external onlyOwner {
@@ -45,20 +53,9 @@ contract Main is Ownable {
     boosterContract = Booster(_boosterAddress);
   }
 
-  // Function to register a user
+  // Simplify registerUser function
   function registerUser(address user) external {
-    if (registeredUsers[user]) {
-      return;
-    }
-    registeredUsers[user] = true;
-    userAddresses.push(user);
-
     emit UserRegistered(user);
-  }
-
-  // Function to get all registered users
-  function getAllUsers() external view returns (address[] memory) {
-    return userAddresses;
   }
 
   // Function to create a new collection
@@ -237,11 +234,10 @@ contract Main is Ownable {
   // Function to create a booster for a player with random cards from a collection
   function createBoosterForPlayer(
     address player,
-    string[] calldata cardIds,
+    string[] memory cardIds,
     string memory boosterName
-  ) external payable {
+  ) external {
     // check that it's 0.01wei per booster
-    require(msg.value == 0.01 ether, "Invalid value");
     boosterContract.createBooster(player, cardIds, boosterName);
   }
 
@@ -294,5 +290,12 @@ contract Main is Ownable {
     )
   {
     return boosterContract.getAllBoosters();
+  }
+
+  // Function to get all boosters of a player
+  function getBoostersByPlayer(
+    address player
+  ) external view returns (uint256[] memory, string[] memory) {
+    return boosterContract.getBoostersByPlayer(player);
   }
 }

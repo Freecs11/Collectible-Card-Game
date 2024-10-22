@@ -1,20 +1,57 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-
-import "./Card.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol"; // Import ERC721 contract
+import "@openzeppelin/contracts/utils/Strings.sol"; // Import Strings library
 
 contract Booster is ERC721Enumerable {
-  uint256 private _boosterIds;
-  mapping(uint256 => string[]) public boosterCards; // Store card IDs for each booster
-  mapping(uint256 => string) public boosterNames; // Store names for each booster
+  using Strings for uint256;
 
-  event BoosterCreated(uint256 boosterId, string[] cardIds, string name);
+  uint256 private _boosterIds;
+  mapping(uint256 => string[]) public boosterCards;
+  mapping(uint256 => string) public boosterNames;
+
+  string private _baseTokenURI;
+
+  event BoosterCreated(
+    uint256 boosterId,
+    string[] cardIds,
+    string name,
+    address owner
+  );
   event BoosterRedeemed(uint256 boosterId);
 
-  constructor() ERC721("Booster", "BOOST") {}
+  constructor() ERC721("Booster", "BOOST") {
+    _boosterIds = 0;
+    _baseTokenURI = "https://metadata/"; //
+  }
+
+  fallback() external {
+    //  handle the unknown function call
+  }
+
+  // Override _baseURI to return your base URI
+  function _baseURI() internal view virtual override returns (string memory) {
+    return _baseTokenURI;
+  }
+
+  // Override tokenURI to construct the full URI
+  function tokenURI(
+    uint256 tokenId
+  ) public view virtual override returns (string memory) {
+    string memory baseURI = _baseURI();
+    return
+      bytes(baseURI).length > 0
+        ? string(abi.encodePacked(baseURI, tokenId.toString()))
+        : "";
+  }
+
+  function supportsInterface(
+    bytes4 interfaceId
+  ) public view virtual override returns (bool) {
+    return super.supportsInterface(interfaceId);
+  }
 
   function createBooster(
     address player,
@@ -26,18 +63,14 @@ contract Booster is ERC721Enumerable {
     uint256 newBoosterId = _boosterIds;
     _mint(player, newBoosterId);
 
-    // Store the card IDs for the booster
     boosterCards[newBoosterId] = cardIds;
     boosterNames[newBoosterId] = name;
 
-    emit BoosterCreated(newBoosterId, cardIds, name);
+    emit BoosterCreated(newBoosterId, cardIds, name, player);
   }
 
   function redeemBooster(uint256 boosterId) external {
-    // check that the booster exists
-
     _burn(boosterId);
-    // remove the booster from the mappings
     delete boosterCards[boosterId];
     delete boosterNames[boosterId];
 
@@ -67,5 +100,21 @@ contract Booster is ERC721Enumerable {
     }
 
     return (boosterIds, boosterNamesResult);
+  }
+
+  function getBoostersByPlayer(
+    address player
+  ) external view returns (uint256[] memory, string[] memory) {
+    uint256 balance = balanceOf(player);
+    uint256[] memory result = new uint256[](balance);
+    string[] memory names = new string[](balance);
+
+    for (uint256 i = 0; i < balance; i++) {
+      uint256 tokenId = tokenOfOwnerByIndex(player, i);
+      result[i] = tokenId;
+      names[i] = boosterNames[tokenId];
+    }
+
+    return (result, names);
   }
 }

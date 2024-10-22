@@ -39,8 +39,6 @@ const Admin = () => {
     number | null
   >(null)
   const [collectionCardCount, setCollectionCardCount] = useState<number>(0)
-  const [boosterNumber, setBoosterNumber] = useState<number>(0)
-  const [boosterName, setBoosterName] = useState<string>('')
 
   const adminPassword = localStorage.getItem('adminPassword')
 
@@ -111,7 +109,7 @@ const Admin = () => {
   // Authenticate admin and fetch cards from the backend
   const fetchCards = async () => {
     if (!adminPassword) {
-      console.error('Admin password is missing.')
+      console.error('Admin password is missing. + ', adminPassword)
       return
     }
 
@@ -134,18 +132,27 @@ const Admin = () => {
     }
   }
 
-  // Fetch all users (i.e., owners of NFTs) from the contract
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
   const fetchUsers = async () => {
     try {
-      // Call the function and get the users array directly
-      const usersall = await contract.methods.getAllUsers().call()
+      // contract address
+      const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+      const web3 = new Web3('http://localhost:8545')
 
-      // Convert the addresses to strings (if needed)
-      const usersString = usersall.map((user: { toString: () => any }) =>
-        user.toString()
-      )
-      setUsers(usersString)
-      console.log('Users:', usersString)
+      let contractAbi = main.myAbi()
+      const contract = new web3.eth.Contract(contractAbi, contractAddress)
+
+      const events = await contract.getPastEvents('UserRegistered', {
+        fromBlock: 0,
+        toBlock: 'latest',
+      })
+
+      const userAddresses = events.map(event => event.returnValues.user)
+      const uniqueUsers = [...new Set(userAddresses)]
+      setUsers(uniqueUsers)
     } catch (error) {
       console.error('Error fetching users:', error)
     }
@@ -162,7 +169,6 @@ const Admin = () => {
       setLoading(true)
       console.log('Creating collection:', collectionName, collectionCardCount)
       setStatusMessage(`Creating collection: ${collectionName}...`)
-      // use very small gas limit to avoid out of gas error
       await contract.methods
         .createCollection(collectionName, collectionCardCount)
         .send({ from: owner_address })
@@ -197,7 +203,7 @@ const Admin = () => {
           selectedCollectionId,
           userAddress,
           card.id,
-          card.cardNumber || 0, // Use the card number if available
+          card.cardNumber || 0,
           card.imageUrl
         )
         .send({
@@ -241,58 +247,13 @@ const Admin = () => {
         )
         .send({
           from: owner_address,
-          // gas: 1000,
+          // gas: 1000, too low
         })
 
       setStatusMessage(`Minted ${selectedCards.length} cards to ${userAddress}`)
     } catch (error) {
       console.error('Error minting multiple cards:', error)
       setStatusMessage('Failed to mint multiple cards.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const createBooster = async () => {
-    if (boosterNumber === 0 || !boosterName) {
-      alert('Please select a user, provide a booster name, and select cards.')
-      return
-    }
-
-    try {
-      setLoading(true)
-      setStatusMessage(
-        `Creating booster: ${boosterName} with ${boosterNumber} cards...`
-      )
-
-      //  call backend to generate booster
-      const response = await axios.get(
-        `http://localhost:5000/api/booster/generate/${setId}/${boosterNumber}/${boosterName}`
-      )
-
-      const {
-        boosterName_res,
-        cardIds,
-      }: { boosterName_res: string; cardIds: string[] } = response.data
-
-      console.log('Booster Name:', boosterName_res)
-      console.log('Card IDs:', cardIds)
-
-      // get the card  Promise<{ name: string; cardIds: string[] , cardNumbers: string[] , cardNames: string[] , cardImages: string[] }> => {
-
-      // Call the contract to create the booster
-      await contract.methods
-        .createBoosterForPlayer(userAddress, cardIds, boosterName)
-        .send({
-          from: owner_address,
-          // cost 0.01 wei , don't take boosterPrice as input
-          value: web3.utils.toWei('0.01', 'ether'),
-        })
-
-      setStatusMessage('Booster created successfully!')
-    } catch (error) {
-      console.error('Error creating booster:', error)
-      setStatusMessage('Failed to create booster.')
     } finally {
       setLoading(false)
     }
@@ -395,34 +356,6 @@ const Admin = () => {
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* booster creation  */}
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">Create Booster</h3>
-            <input
-              type="text"
-              placeholder="Booster Name"
-              value={boosterName}
-              onChange={e => setBoosterName(e.target.value)}
-              className="px-4 py-2 border rounded-md w-full mb-2"
-            />
-
-            <input
-              type="number"
-              placeholder="Number of Cards"
-              value={boosterNumber}
-              onChange={e => setBoosterNumber(Number(e.target.value))}
-              className="px-4 py-2 border rounded-md w-full mb-2"
-            />
-
-            <button
-              className="bg-pokemonBlue text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
-              onClick={createBooster}
-              disabled={loading}
-            >
-              {loading ? 'Creating Booster...' : 'Create Booster'}
-            </button>
           </div>
 
           {/* Create Collection */}
