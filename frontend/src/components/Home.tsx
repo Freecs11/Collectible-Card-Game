@@ -116,9 +116,16 @@ const Home: FC<HomeProps> = ({ wallet }) => {
   }
   return (
     <div className="Home p-6 relative">
-      <h2 className="text-3xl font-bold mb-4">All Cards</h2>
+      {/* <h2 className="text-3xl font-bold mb-4">All Cards</h2>
       {loading ? (
         <p>Loading cards...</p>
+      ) */}
+      {/* All Cards in mid in blueish pokemon vibes */}
+      <h2 className="text-2xl font-bold mb-4 text-pokemonBlue text-center">
+        All Cards
+      </h2>
+      {loading ? (
+        <p className="text-center">Loading cards...</p>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -155,7 +162,7 @@ const Home: FC<HomeProps> = ({ wallet }) => {
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`absolute left-[-3.5rem] top-1/2 transform -translate-y-1/2 focus:outline-none ${
+                className={`absolute left-[-1.5rem] top-1/2 transform -translate-y-1/2 focus:outline-none ${
                   currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -170,7 +177,7 @@ const Home: FC<HomeProps> = ({ wallet }) => {
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`absolute right-[-3.5rem] top-1/2 transform -translate-y-1/2 focus:outline-none ${
+                className={`absolute right-[-1.5rem] top-1/2 transform -translate-y-1/2 focus:outline-none ${
                   currentPage === totalPages
                     ? 'opacity-50 cursor-not-allowed'
                     : ''
@@ -184,7 +191,7 @@ const Home: FC<HomeProps> = ({ wallet }) => {
               </button>
 
               {/* Page Indicator */}
-              <div className="absolute bottom-[-2.5rem] left-1/2 transform -translate-x-1/2 mb-4 text-lg">
+              <div className="absolute bottom-[-1.5rem] left-1/2 transform -translate-x-1/2 mb-4 text-lg">
                 Page {currentPage} of {totalPages}
               </div>
             </>
