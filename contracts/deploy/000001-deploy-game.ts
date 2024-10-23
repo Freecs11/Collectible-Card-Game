@@ -1,21 +1,3 @@
-// import 'dotenv/config'
-// import { DeployFunction } from 'hardhat-deploy/types'
-
-// const deployer: DeployFunction = async hre => {
-//   if (hre.network.config.chainId !== 31337) return
-//   const { deployer } = await hre.getNamedAccounts()
-//   console.log('Deploying contracts with the account:', deployer);
-
-//   await hre.deployments.deploy('Main', {
-//     from: deployer,
-//     args: [deployer],
-//     log: true
-//   })
-// }
-
-// export default deployer
-
-
 import 'dotenv/config';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
@@ -59,6 +41,16 @@ const deployer: DeployFunction = async hre => {
   await mainContract.setCardContract(cardAddress);
   await mainContract.setBoosterContract(boosterAddress);
   console.log('Booster contract address set in Main contract');
+
+
+  // Step 5: Deploy the Market contract
+  const marketDeployment = await deploy('Market', {
+    from: deployer,
+    args: [cardAddress , deployer], 
+    log: true,
+  });
+  const marketAddress = marketDeployment.address;
+  console.log('Market deployed at:', marketAddress);
 };
 
 export default deployer;

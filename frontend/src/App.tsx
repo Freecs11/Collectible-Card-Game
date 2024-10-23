@@ -2,8 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as ethereum from '@/lib/ethereum'
 import * as main from '@/lib/main'
-import Header from './components/Header/Header'
-import Admin from './components/Admin/Admin'
+import Header from './components/Header'
+import Admin from './components/Admin'
 import Boosters from './components/Boosters'
 import Collections from './components/Collections'
 import Navbar from './components/Navbar'
@@ -11,6 +11,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import Web3 from 'web3' // Import Web3
 import { ethers } from 'ethers'
 import Home from './components/Home'
+import Marketplace from './components/Marketplace'
 
 const useAffect = (
   asyncEffect: () => Promise<(() => void) | void>,
@@ -112,13 +113,7 @@ export const App = () => {
               {isAdmin && <Route path="/admin" element={<Admin />} />}
               <Route
                 path="/marketplace"
-                element={
-                  <div>
-                    <h2 className="text-2xl font-bold">
-                      Marketplace Coming Soon!
-                    </h2>
-                  </div>
-                }
+                element={<Marketplace wallet={wallet as any} />}
               />
             </Routes>
           ) : (

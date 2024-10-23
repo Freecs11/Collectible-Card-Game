@@ -3,6 +3,9 @@ import React, { FC, useEffect, useState } from 'react'
 import axios from 'axios'
 import * as ethereum from '@/lib/ethereum'
 import * as main from '@/lib/main'
+import { ethers } from 'ethers' // Import ethers for blockchain interactions
+import Modal from './Modal'
+import contracts from '../contracts.json'
 
 interface CollectionsProps {
   wallet: {
@@ -25,6 +28,9 @@ interface CardDetails {
 const Collections: FC<CollectionsProps> = ({ wallet }) => {
   const [nftsByAddress, setNftsByAddress] = useState<CardDetails[]>([])
   const [loading, setLoading] = useState(false)
+  const [selectedCard, setSelectedCard] = useState<CardDetails | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [price, setPrice] = useState<string>('')
 
   const fetchNFTs = async () => {
     try {
@@ -75,6 +81,56 @@ const Collections: FC<CollectionsProps> = ({ wallet }) => {
 
   const ownerAddress = wallet?.details.account
 
+  // Function to open the modal for a specific card
+  const handleSellClick = (card: CardDetails) => {
+    setSelectedCard(card)
+    setShowModal(true)
+  }
+
+  const handleListCard = async (price: string) => {
+    try {
+      if (!wallet || !selectedCard) return
+      const signer = wallet.details.signer
+
+      // Load contract data from JSON file
+      const marketAddress = contracts.contracts.Market.address
+
+      const marketContract = new ethers.Contract(
+        marketAddress,
+        contracts.contracts.Market.abi,
+        signer
+      )
+
+      const cardContract = new ethers.Contract(
+        contracts.contracts.Card.address,
+        contracts.contracts.Card.abi,
+        signer
+      )
+
+      // Approve the Market contract for this specific NFT
+      const approveTx = await cardContract.approve(
+        marketAddress,
+        selectedCard.tokenId
+      )
+      await approveTx.wait()
+
+      // List the card
+      const listingPrice = ethers.utils.parseEther(price)
+      const listTx = await marketContract.listCard(
+        selectedCard.tokenId,
+        listingPrice
+      )
+      await listTx.wait()
+
+      alert('Card listed successfully!')
+      setShowModal(false)
+      fetchNFTs() // Refresh the NFTs list
+    } catch (error) {
+      console.error('Error listing card:', error)
+      alert('Failed to list the card. Please try again.')
+    }
+  }
+
   return (
     <div className="Collections p-6">
       <h2 className="text-2xl font-bold mb-6 text-pokemonBlue">
@@ -114,11 +170,41 @@ const Collections: FC<CollectionsProps> = ({ wallet }) => {
               <p className="text-sm text-gray-500 mt-2">
                 Token ID: {card.tokenId}
               </p>
+              <button
+                onClick={() => handleSellClick(card)}
+                className="mt-2 bg-pokemonBlue text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+              >
+                Sell
+              </button>
             </li>
           ))}
         </ul>
       ) : (
         <p className="text-gray-500">No NFTs owned.</p>
+      )}
+
+      {/* Sell Modal */}
+      {showModal && selectedCard && (
+        <Modal onClose={() => setShowModal(false)}>
+          <h2 className="text-xl font-bold mb-4">List Card for Sale</h2>
+          <p className="mb-2">Card: {selectedCard.cardName}</p>
+          <p className="mb-4">Token ID: {selectedCard.tokenId}</p>
+          <div>
+            <label className="block mb-2">Price in ETH:</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 mb-4 border rounded"
+              placeholder="Enter price"
+              onChange={e => setPrice(e.target.value)}
+            />
+            <button
+              onClick={() => handleListCard(price)}
+              className="bg-pokemonYellow px-4 py-2 rounded hover:bg-yellow-400 transition"
+            >
+              Confirm Listing
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   )

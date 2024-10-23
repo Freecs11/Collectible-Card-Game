@@ -86,24 +86,23 @@ const Boosters: FC<BoostersProps> = ({ wallet }) => {
       setLoading(true)
       setStatusMessage('Creating booster...')
 
-      // Initialize ethers provider and signer
+      // ethers, getting too much errors with web3
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       await provider.send('eth_requestAccounts', [])
       const signer = provider.getSigner()
       const userAddress = await signer.getAddress()
 
-      // Get Main contract ABI and address
       const abi = contracts.contracts.Main.abi as ContractInterface
       const contractAddress = contracts.contracts.Main.address
 
       const contract = new ethers.Contract(contractAddress, abi, signer)
 
-      // Correct date formatting
+      // Correct date formatting, i used this to generate the booster collection name
       const datenow = new Date().toISOString().replace(/[-:.TZ]/g, '')
       const boosterName = `Booster_${datenow}`
-      const boosterNumber = 5 // Fixed number of cards
+      const boosterNumber = 5 // fixed number of cards in a booster
 
-      // Call backend to generate booster
+      // Call backend to generate booster cards
       const response = await axios.get(
         `http://localhost:5000/api/booster/generate/${boosterNumber}/${boosterName}`
       )
@@ -115,23 +114,21 @@ const Boosters: FC<BoostersProps> = ({ wallet }) => {
 
       console.log('User Address create Booster:', userAddress)
 
-      // Validate response data
       if (!cardIds || !Array.isArray(cardIds) || cardIds.length === 0) {
         throw new Error('Invalid cardIds received from backend')
       }
 
       // Call the contract to create the booster
-      const tx = await contract.createBoosterForPlayer(
+      const e = await contract.createBoosterForPlayer(
         userAddress,
         cardIds,
         boosterName_res,
         {
-          nonce: await provider.getTransactionCount(userAddress, 'latest'),
+          value: ethers.utils.parseEther('0.5'),
         }
       )
 
-      // Wait for transaction confirmation
-      await tx.wait()
+      const receipt = await e.wait()
 
       setStatusMessage('Booster created successfully!')
       refreshBoosters()
@@ -259,7 +256,7 @@ const Boosters: FC<BoostersProps> = ({ wallet }) => {
       const finalImageURIs = detailedCards.map(card => card.cardImageUrl)
 
       // Redeem booster and create collection
-      const tx = await contract.redeemBoosterAndCreateCollection(
+      const resp = await contract.redeemBoosterAndCreateCollection(
         boosterId,
         userAddress,
         boosterCollectionName,
@@ -267,14 +264,10 @@ const Boosters: FC<BoostersProps> = ({ wallet }) => {
         finalCardNumbers,
         finalImageURIs,
         {
-          value: ethers.utils.parseEther('0.01'),
-          nonce: await provider.getTransactionCount(userAddress, 'latest'),
+          value: ethers.utils.parseEther('1'),
         }
       )
-
-      // Wait for transaction confirmation
-      await tx.wait()
-
+      const receipt = await resp.wait()
       // Remove the booster from the cache since it's redeemed
       setBoosterCardsCache(prevCache => {
         const newCache = { ...prevCache }

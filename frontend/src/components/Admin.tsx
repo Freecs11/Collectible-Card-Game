@@ -86,7 +86,6 @@ const Admin = () => {
       // Call the function to get the collections
       const result = await contract.methods.getAllCollections().call()
 
-      // Ensure that the result is in the expected format
       const collectionIds = result[0]
       const collectionNames = result[1]
       const collectionCardCounts = result[2]
@@ -94,7 +93,7 @@ const Admin = () => {
       // Map the collections into a structured object
       const collections = collectionIds.map(
         (id: { toString: () => string }, index: string | number) => ({
-          id: parseInt(id.toString()), // Ensure the ID is a number
+          id: parseInt(id.toString()),
           name: collectionNames[index],
           cardCount: parseInt(collectionCardCounts[index].toString()), // Ensure the card count is a number
         })
@@ -169,10 +168,11 @@ const Admin = () => {
       setLoading(true)
       console.log('Creating collection:', collectionName, collectionCardCount)
       setStatusMessage(`Creating collection: ${collectionName}...`)
-      await contract.methods
+      const d = await contract.methods
         .createCollection(collectionName, collectionCardCount)
         .send({ from: owner_address })
 
+      const receipt = await d.wait()
       setStatusMessage('Collection created successfully!')
       fetchCollections() // Refresh the collection list after creation
     } catch (error) {
@@ -247,9 +247,8 @@ const Admin = () => {
         )
         .send({
           from: owner_address,
-          // gas: 1000, too low
+          // gas: 1000, too low, not good idea to manually set
         })
-
       setStatusMessage(`Minted ${selectedCards.length} cards to ${userAddress}`)
     } catch (error) {
       console.error('Error minting multiple cards:', error)

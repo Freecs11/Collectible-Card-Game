@@ -236,8 +236,8 @@ contract Main is Ownable {
     address player,
     string[] memory cardIds,
     string memory boosterName
-  ) external {
-    // check that it's 0.01wei per booster
+  ) external payable {
+    require(msg.value == 0.5 ether, "Invalid value");
     boosterContract.createBooster(player, cardIds, boosterName);
   }
 
@@ -256,7 +256,7 @@ contract Main is Ownable {
     uint256[] memory cardNumbers,
     string[] memory imageURIs
   ) external payable {
-    require(msg.value == 0.01 ether, "Invalid value");
+    require(msg.value == 1 ether, "Invalid value");
 
     // Create a new collection
     Collection newCollection = new Collection(collectionName, cardIds.length);

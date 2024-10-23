@@ -32,7 +32,9 @@ const Home: FC<HomeProps> = ({ wallet }) => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1)
   const cardsPerPage = 10
-
+  const userAddress = wallet?.details.account
+  // Calculate total pages
+  const totalPages = Math.ceil(cards.length / cardsPerPage)
   useEffect(() => {
     if (!wallet) return
 
@@ -40,7 +42,6 @@ const Home: FC<HomeProps> = ({ wallet }) => {
       try {
         setLoading(true)
 
-        // Call getNFTsAndOwnersFromAllCollections
         const [nftIds, owners] =
           await wallet.contract.getNFTsAndOwnersFromAllCollections()
 
@@ -66,8 +67,11 @@ const Home: FC<HomeProps> = ({ wallet }) => {
               tokenId: nftId.toString(),
               cardName: pokemonData?.name || 'Unknown Card',
               cardImageUrl:
-                pokemonData?.images?.large || pokemonData?.images?.small,
-              cardNumber: parseInt(pokemonData?.number) || 0,
+                pokemonData?.images?.large ||
+                pokemonData?.images?.small ||
+                imageURI,
+              cardNumber:
+                parseInt(pokemonData?.number) || cardNumber.toNumber(),
               hp: pokemonData?.hp || 'N/A',
               level: pokemonData?.level || 'N/A',
               rarity: pokemonData?.rarity || 'Common',
@@ -88,12 +92,6 @@ const Home: FC<HomeProps> = ({ wallet }) => {
 
     fetchAllCards()
   }, [wallet])
-
-  // Get the user's own address
-  const userAddress = wallet?.details.account
-
-  // Calculate total pages
-  const totalPages = Math.ceil(cards.length / cardsPerPage)
 
   // Get current page cards
   const indexOfLastCard = currentPage * cardsPerPage
@@ -116,11 +114,6 @@ const Home: FC<HomeProps> = ({ wallet }) => {
   }
   return (
     <div className="Home p-6 relative">
-      {/* <h2 className="text-3xl font-bold mb-4">All Cards</h2>
-      {loading ? (
-        <p>Loading cards...</p>
-      ) */}
-      {/* All Cards in mid in blueish pokemon vibes */}
       <h2 className="text-2xl font-bold mb-4 text-pokemonBlue text-center">
         All Cards
       </h2>

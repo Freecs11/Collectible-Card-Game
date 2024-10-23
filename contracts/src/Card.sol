@@ -22,10 +22,8 @@ contract Card is ERC721Enumerable, Ownable {
   // see https://github.com/MetaMask/metamask-extension/issues/14963
   // & https://github.com/smartcontractkit/full-blockchain-solidity-course-js/discussions/315 for more details
   // // * receive function
-  // receive() external payable {}
 
-  // // * fallback function
-  // fallback() external payable {}
+  fallback() external {}
 
   function mintCard(
     address player,
