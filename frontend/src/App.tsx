@@ -70,6 +70,7 @@ export const App = () => {
   const wallet = useWallet()
   const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [userRegistered, setUserRegistered] = useState<boolean>(false)
+  const [userAddress, setUserAddress] = useState<string>('')
 
   useEffect(() => {
     if (!wallet) return
@@ -77,6 +78,7 @@ export const App = () => {
     const registerUser = async () => {
       try {
         const userAddress = wallet.details.account
+
         await registerUserAsAdmin(main.myAbi(), userAddress)
 
         setUserRegistered(true)
@@ -86,12 +88,15 @@ export const App = () => {
     }
 
     registerUser()
+    if (wallet?.details.account) {
+      setUserAddress(wallet.details.account)
+    }
   }, [wallet])
 
   return (
     <Router>
       <div className="min-h-screen bg-gradient-to-b from-pokemonBlue to-lightYellow text-gray-900 font-sans">
-        <Header isAdmin={isAdmin} onLogin={setIsAdmin} />
+        <Header isAdmin={isAdmin} onLogin={setIsAdmin} userAddr={userAddress} />
         <Navbar isAdmin={isAdmin} />
         <main className="p-6 container mx-auto">
           {userRegistered ? (

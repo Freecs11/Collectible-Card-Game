@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import pokeball from '/pokeball.jpg'
+import { Wallet } from 'ethers'
 interface HeaderProps {
   isAdmin: boolean
   onLogin: (isAdmin: boolean) => void
+  userAddr: String
 }
 
-const Header: React.FC<HeaderProps> = ({ isAdmin, onLogin }) => {
+const Header: React.FC<HeaderProps> = ({ isAdmin, onLogin, userAddr }) => {
   const [password, setPassword] = useState<string>('')
+  const usradd = userAddr != '' ? userAddr : 'No wallet connected'
 
   // brute force, je me suis pas intéressé à la sécurité dans ce cas
   const handleLogin = () => {
@@ -45,6 +48,13 @@ const Header: React.FC<HeaderProps> = ({ isAdmin, onLogin }) => {
       {/* Content */}
       <div className="relative z-10 flex justify-between items-center w-full">
         <h1 className="text-3xl">Pokémon TCG DApp</h1>
+        {/* show the address of the connected user ( wallet, not admin) */}
+        <div className="flex space-3x-8">
+          <div className="text-lg text-gray-400 hover:underline cursor-pointer">
+            {' '}
+            Connected Wallet: {usradd}{' '}
+          </div>
+        </div>
         {isAdmin ? (
           <button
             className="bg-pokemonRed px-4 py-2 rounded-full hover:bg-red-600 shadow-button transition duration-300"
