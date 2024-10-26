@@ -168,11 +168,10 @@ const Admin = () => {
       setLoading(true)
       console.log('Creating collection:', collectionName, collectionCardCount)
       setStatusMessage(`Creating collection: ${collectionName}...`)
-      const d = await contract.methods
+      await contract.methods
         .createCollection(collectionName, collectionCardCount)
         .send({ from: owner_address })
 
-      const receipt = await d.wait()
       setStatusMessage('Collection created successfully!')
       fetchCollections() // Refresh the collection list after creation
     } catch (error) {
@@ -184,7 +183,7 @@ const Admin = () => {
   }
 
   const mintCard = async (card: PokemonCard) => {
-    if (!userAddress || selectedCollectionId === null || !card.cardNumber) {
+    if (!userAddress || selectedCollectionId === null || !card) {
       alert('Please select a user and a collection.')
       return
     }
@@ -250,6 +249,7 @@ const Admin = () => {
           // gas: 1000, too low, not good idea to manually set
         })
       setStatusMessage(`Minted ${selectedCards.length} cards to ${userAddress}`)
+      setSelectedCards([]) // Clear the selected cards after minting
     } catch (error) {
       console.error('Error minting multiple cards:', error)
       setStatusMessage('Failed to mint multiple cards.')

@@ -31,64 +31,63 @@ const Home: FC<HomeProps> = ({ wallet }) => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const cardsPerPage = 10
+  const cardsPerPage = 8
   const userAddress = wallet?.details.account
   // Calculate total pages
   const totalPages = Math.ceil(cards.length / cardsPerPage)
+  const fetchAllCards = async () => {
+    try {
+      setLoading(true)
+
+      const [nftIds, owners] =
+        await wallet.contract.getNFTsAndOwnersFromAllCollections()
+
+      const nftIdNumbers = nftIds.map((id: ethers.BigNumber) => id.toNumber())
+
+      const cardsData: CardDetails[] = await Promise.all(
+        nftIdNumbers.map(async (nftId, index) => {
+          const owner = owners[index]
+
+          // Get card metadata from the contract
+          const cardMetadata = await wallet.contract.getCardMetadata(nftId)
+
+          const cardId = cardMetadata[0] // cardIds
+          const cardNumber = cardMetadata[1] // cardNumber
+          const imageURI = cardMetadata[2] // imageURI
+
+          // Fetch card details from backend API using cardId
+          const apiUrl = `http://localhost:5000/api/cards/card/${cardId}`
+          const response = await axios.get(apiUrl)
+          const pokemonData = response.data
+
+          const cardData: CardDetails = {
+            tokenId: nftId.toString(),
+            cardName: pokemonData?.name || 'Unknown Card',
+            cardImageUrl:
+              pokemonData?.images?.large ||
+              pokemonData?.images?.small ||
+              imageURI,
+            cardNumber: parseInt(pokemonData?.number) || cardNumber.toNumber(),
+            hp: pokemonData?.hp || 'N/A',
+            level: pokemonData?.level || 'N/A',
+            rarity: pokemonData?.rarity || 'Common',
+            owner: owner,
+          }
+
+          return cardData
+        })
+      )
+
+      setCards(cardsData)
+    } catch (error) {
+      console.error('Error fetching all cards:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (!wallet) return
-
-    const fetchAllCards = async () => {
-      try {
-        setLoading(true)
-
-        const [nftIds, owners] =
-          await wallet.contract.getNFTsAndOwnersFromAllCollections()
-
-        const nftIdNumbers = nftIds.map((id: ethers.BigNumber) => id.toNumber())
-
-        const cardsData: CardDetails[] = await Promise.all(
-          nftIdNumbers.map(async (nftId, index) => {
-            const owner = owners[index]
-
-            // Get card metadata from the contract
-            const cardMetadata = await wallet.contract.getCardMetadata(nftId)
-
-            const cardId = cardMetadata[0] // cardIds
-            const cardNumber = cardMetadata[1] // cardNumber
-            const imageURI = cardMetadata[2] // imageURI
-
-            // Fetch card details from backend API using cardId
-            const apiUrl = `http://localhost:5000/api/cards/card/${cardId}`
-            const response = await axios.get(apiUrl)
-            const pokemonData = response.data
-
-            const cardData: CardDetails = {
-              tokenId: nftId.toString(),
-              cardName: pokemonData?.name || 'Unknown Card',
-              cardImageUrl:
-                pokemonData?.images?.large ||
-                pokemonData?.images?.small ||
-                imageURI,
-              cardNumber:
-                parseInt(pokemonData?.number) || cardNumber.toNumber(),
-              hp: pokemonData?.hp || 'N/A',
-              level: pokemonData?.level || 'N/A',
-              rarity: pokemonData?.rarity || 'Common',
-              owner: owner,
-            }
-
-            return cardData
-          })
-        )
-
-        setCards(cardsData)
-      } catch (error) {
-        console.error('Error fetching all cards:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
 
     fetchAllCards()
   }, [wallet])
