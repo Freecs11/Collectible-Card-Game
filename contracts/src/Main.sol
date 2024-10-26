@@ -82,6 +82,14 @@ contract Main is Ownable {
     require(collectionId < collectionCount, "Invalid collection ID");
     Collection collection = collections[collectionId];
 
+    // Check if the collection is full
+    uint256 cards_allowed_in_collection = collection.cardCount();
+    uint256 cards_count_in_collection = collection.getCardIds().length;
+    require(
+      cards_count_in_collection < cards_allowed_in_collection,
+      "Collection is full"
+    );
+
     uint256 cardId = cardContract.mintCard(
       player,
       cardIds,
@@ -110,8 +118,13 @@ contract Main is Ownable {
       "Arrays must be the same length"
     );
     Collection collection = collections[collectionId];
-
+    uint256 cards_allowed_in_collection = collection.cardCount();
+    uint256 cards_count_in_collection = collection.getCardIds().length;
     for (uint256 i = 0; i < cardNumbers.length; i++) {
+      require(
+        cards_count_in_collection < cards_allowed_in_collection,
+        "Collection is full"
+      );
       uint256 cardId = cardContract.mintCard(
         player,
         cardIds[i],
@@ -124,6 +137,8 @@ contract Main is Ownable {
       collection.addCard(cardId);
 
       emit CardMinted(collectionId, cardId, player);
+
+      cards_count_in_collection++;
     }
   }
 

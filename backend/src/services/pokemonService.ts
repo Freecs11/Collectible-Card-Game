@@ -25,7 +25,7 @@ export const fetchAndStoreCards = async (set: string): Promise<PokemonCard[]> =>
     const response = await api.get(`/cards`, {
       params: {
         q: `set.id:${set}`,
-        pageSize: 10, // Adjust as needed
+        pageSize: 10, // 10 cards per page
       },
     });
 

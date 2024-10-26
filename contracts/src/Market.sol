@@ -56,12 +56,9 @@ contract Market is Ownable {
     address seller = listing.seller;
     uint256 price = listing.price;
 
-    // **Checks-Effects-Interactions pattern**
-
-    // Effects: Mark the listing as inactive
+    // Mark the listing as inactive
     listing.isActive = false;
 
-    // Interactions: Transfer the card and funds
     // Transfer the card to the buyer
     cardContract.transferFrom(address(this), msg.sender, _cardId);
 
@@ -92,7 +89,7 @@ contract Market is Ownable {
     uint256 totalListings = cardContract.totalSupply();
     uint256 activeCount = 0;
 
-    // First, count the active listings
+    // count the active listings
     for (uint256 i = 1; i <= totalListings; i++) {
       if (listings[i].isActive) {
         activeCount++;

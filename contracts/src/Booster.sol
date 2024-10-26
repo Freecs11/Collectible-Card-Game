@@ -83,6 +83,7 @@ contract Booster is ERC721Enumerable {
     return (boosterCards[boosterId], boosterNames[boosterId]);
   }
 
+  // was used for testing
   function getAllBoosters()
     external
     view

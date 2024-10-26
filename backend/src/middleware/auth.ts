@@ -14,8 +14,6 @@ export const authenticateAdmin = (req: Request, res: Response, next: NextFunctio
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = credentials.split(':');
     
-    // in js we will declare the auth as follows:
-    // headers: { Authorization: 'Basic ' + btoa(`${username}:${password}`) },
 
   // Check if the provided password matches the one in the environment
   if (password !== process.env.ADMIN_PASSWORD ) {
