@@ -59,14 +59,6 @@ In a real TCG, a new set of cards is published approximately every 3 to 4 months
 
 More specifications: the cards will be represented as NFT, or Non-Fungible Tokens. It's the best way to represent collectibles on a blockchain. For this, you'll implement the ERC-721 norm, and you'll build the different frontends and backends on your own. The project is here to help you kickstart the infrastructure.
 
-## Expectations
-
-You'll send:
-
-- The code you wrote as a monorepo. Contracts, frontend and backend should be in the same GitHub repo. Your repository should be send by email.
-- A report of what you've done. This report should be comprised of 5 to 8 pages approximately, and should not contain any code, except in case of extreme necessity (i.e. a pseudo-code algorithm for example). You can – if you need to talk about the code – make a link pointing to the correct file or code block on the GitHub repo. Every extract of code not necessary will be a subject of a penalty.
-- A short video demo of what you've done. You should be able to create a small video of up to 3 minutes displaying the different features working on your computer.
-
 # Implementations
 
 Let's jump into the code.
@@ -110,10 +102,8 @@ Everytime we want to create a new set of cards, we create the collection with a 
 
 ## To go beyond
 
-> Implement at least one feature.
-
 - Improve the frontend, by adding a way to manage collection, like a binder.
 - Improve the contract, to be able to manage a multichain codebase, with a bridge between chains.
 - Add a game engine for the cards, like fighting with your Pokémon and some energy cards.
-- Implement a marketplace to exchange cards between users.
+- Implement a marketplace to exchange cards between users. ( done )
 - Implement a tournament game some promos cards for winners.
